@@ -1,0 +1,13 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    server_name 34.210.88.134;
+
+    root /var/www/bookstack;
+    index index.php index.html;
+    
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

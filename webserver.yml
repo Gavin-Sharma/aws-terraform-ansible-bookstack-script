@@ -1,0 +1,111 @@
+---
+- name: Install nginx
+  hosts: aws_ec2
+  become: True
+  vars:
+    - root_db_username: admin
+    - root_db_password: 252002252002
+    - new_db_username: bookstack
+    - new_db_password: 252002252002
+    - rds_endpoint: acit-4640-rds.c8gj8wfxjyfd.us-west-2.rds.amazonaws.com
+    - mysql_port: 3306
+    - db_name: bookstack
+  tasks:
+    # Update the EC2
+    - name: Update package cache
+      apt:
+        update_cache: yes
+
+    # Install some packages
+    - name: Install packages
+      apt:
+        name:
+          - nginx
+          - git
+          - unzip
+          - php8.1
+          - php8.1-fpm
+          - curl
+          - php8.1-curl
+          - php8.1-mbstring
+          - php8.1-ldap
+          - php8.1-xml
+          - php8.1-zip
+          - php8.1-gd
+          - php8.1-mysql
+          - mysql-client
+          - python3-pip
+          - mysql-client
+        state: present
+
+   # Install some packages using pip 
+    - name: Install packages using pip
+      pip:
+        name: 
+          - PyMySQL
+        state: present
+
+    # Create /var/www/bookstack directory
+    - name: Create /var/www/bookstack directory
+      file:
+        path: /var/www/bookstack
+        state: directory
+
+    # Copy index.html file to /var/www/bookstack
+    - name: Copy index.html file to /var/www/bookstack
+      copy:
+        src: index.html
+        dest: /var/www/bookstack/index.html
+
+    # Copy bookstack file to /etc/nginx/sites-availble
+    - name: Copy bookstack file to /etc/nginx/sites-availble
+      copy:
+        src: ./bookstack
+        dest: /etc/nginx/sites-available/bookstack
+
+    # Copy bookstack file to /etc/nginx/sites-enabled
+    - name: Copy bookstack file to /etc/nginx/sites-enabled
+      copy:
+        src: ./bookstack
+        dest: /etc/nginx/sites-enabled/bookstack
+
+    # Remove default file in sites-enabled
+    - name: Remove /etc/nginx/sites-enabled/default
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    # Remove default file in sites-avalible  
+    - name: Remove /etc/nginx/site-available/default
+      file:
+        path: /etc/nginx/sites-available/default
+        state: absent
+
+    # Create bookstack database in RDS
+    - name: Create bookstack database in RDS
+      community.mysql.mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_user: "{{ root_db_username }}"
+        login_password: "{{ root_db_password }}"
+        login_host: "{{ rds_endpoint }}"
+        login_port: "{{ mysql_port }}"
+    
+    # Create bookstack user in RDS
+    - name: Create the database user in RDS
+      community.mysql.mysql_user:
+        name: "{{ new_db_username }}"
+        password: "{{ new_db_password }}"
+        host: '%'
+        state: present
+        priv: "{{ db_name }}.*:ALL PRIVILEGES,GRANT"
+        login_user: "{{ root_db_username }}"
+        login_password: "{{ root_db_password }}"
+        login_host: "{{ rds_endpoint }}"
+        login_port: "{{ mysql_port }}"
+
+    # Restart Nginx
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
