@@ -1,5 +1,5 @@
 # aws-terraform-ansible-bookstack-script
-###### [Documentation](https://docs.google.com/document/d/1OTZsSthqg-ffOn37reAyhKZkkSOf6Hb_Oq7Bdv_7Vgk/edit?usp=sharing "Documentation")
+###### [Documentation](https://docs.google.com/document/d/10svFtEWZuTkrUooxrhUX1qUXqv7nC3ghG345ZXahjl0/edit?usp=sharing "Documentation")
 ------------
 
 ## Infrastructure using Terraform
